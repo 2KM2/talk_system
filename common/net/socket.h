@@ -1,7 +1,7 @@
 #pragma once
 
 #include "noncopyable.h"
-class InetAddress;
+class CInetAddress;
 
 
 //封装 socket fd
