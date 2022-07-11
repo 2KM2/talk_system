@@ -1,35 +1,37 @@
 #!/bin/bash
-
+CURRENT_DIR=$(dirname $(readlink -f "$0"))
 build(){
     echo "build"
     if [ ! -d lib ]
     then
         mkdir lib
     fi
-    
+
+	echo $CURRENT_DIR
+
     mkdir -p ./common/build
 	cd  ./common/build
-    cmake ..
-    make 
+    cmake .. && make
     if [ $? -eq 0 ]; then
-        echo "make base successed";
+        echo "make common successed";
     else
-        echo "make base failed";
+        echo "make common failed";
         exit;
     fi
-
-	make -p ./run/lib
-	make -p ./run/etc
-	make -p ./run/login_server
-	make -p ./run/route_server
-	make -p ./run/msg_server
+	cd $CURRENT_DIR #重新回到当前路径
+	mkdir -p ./run/lib
+	mkdir -p ./run/etc
+	mkdir -p ./run/login_server
+	mkdir -p ./run/route_server
+	mkdir -p ./run/msg_server
 }
 
 
 clean(){
     echo "clean"
-	cd common
+	cd $CURRENT_DIR/common/build
 	make clean
+	rm -rf $CURRENT_DIR/common/build
 }
 
 print_help() {
@@ -42,16 +44,17 @@ case $1 in
 		echo "clean all build..."
 		clean
 		;;
-	version)
-		if [ $# != 2 ]; then 
-			echo $#
-			print_help
-			exit
-		fi
+	build)
+		#if [ $# != 2 ]; then 
+		#	echo $#
+		#	print_help
+		#	exit
+		#fi
+		build
 
-		echo $2
-		echo "build..."
-		build $2
+		#echo $2
+		#echo "build..."
+		#build $2
 		;;
 	*)
 		print_help

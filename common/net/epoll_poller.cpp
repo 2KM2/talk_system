@@ -37,6 +37,7 @@ CTimeStamp CEpollPoller::poll(int timeoutMs, ChannelList *activeChannels)
 {
     // 实际上应该用LOG_DEBUG输出日志更为合理
     LOG_INFO("func=%s => fd total count:%lu \n", __FUNCTION__, channels_.size());
+    // &*events_.begin() vector底层数组地址
     int numEvents = ::epoll_wait(epollfd_, &*events_.begin(), static_cast<int>(events_.size()), timeoutMs);
     int saveErrno = errno;
     CTimeStamp now(CTimeStamp::now());
@@ -129,7 +130,7 @@ void CEpollPoller::fillActiveChannels(int numEvents, ChannelList *activeChannels
 // 更新channel通道 epoll_ctl add/mod/del
 void CEpollPoller::update(int operation, CChannel *channel)
 {
-    epoll_event event;
+    struct epoll_event event;//创建epoll_event
     bzero(&event, sizeof event);
     
     int fd = channel->fd();
@@ -140,7 +141,7 @@ void CEpollPoller::update(int operation, CChannel *channel)
     
     if (::epoll_ctl(epollfd_, operation, fd, &event) < 0)
     {
-        if (operation == EPOLL_CTL_DEL)
+        if (operation == EPOLL_CTL_DEL)//如果是DEL无所谓
         {
             LOG_ERROR("epoll_ctl del error:%d\n", errno);
         }
