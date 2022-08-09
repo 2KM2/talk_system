@@ -71,7 +71,7 @@ private:
     const int fd_;//fd,Poller监听的对象
     int events_; // 注册fd感兴趣的事件
     int revents_; // poller返回的具体发生的事件
-    int index_;
+    int index_;//当前channel在poller状态
 
     std::weak_ptr<void> tie_;//跨线程对象问题，什么类型可以接受
     bool tied_;
