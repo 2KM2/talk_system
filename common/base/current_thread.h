@@ -3,6 +3,8 @@
 /**
  * __thread 相当于thread_local
 */
+#include <unistd.h>
+#include <sys/syscall.h>
 namespace CurrentThread
 {
     extern __thread int t_cachedTid;

@@ -51,7 +51,7 @@ void CChannel::update()
     // 通过channel所属的EventLoop，调用poller的相应方法，注册fd的events事件
     addedToLoop_ = true;
     //TODO
-    //loop_->updateChannel(this);
+    loop_->updateChannel(this);
 }
 
 
@@ -61,7 +61,7 @@ void CChannel::remove()
   assert(isNoneEvent());//当前没有事件才会remove
   addedToLoop_ = false;
   // TODO
-  // loop_->removeChannel(this);
+  loop_->removeChannel(this);
 }
 
 // fd得到poller通知以后，处理事件的

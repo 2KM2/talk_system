@@ -38,7 +38,7 @@ CEventLoop::CEventLoop()
 ,quit_(false)
 ,callingPendingFunctors_(false)
 ,threadId_(CurrentThread::tid())
-,poller_(Poller::newDefaultPoller(this))
+,poller_(CPoller::newDefaultPoller(this))
 ,wakeupFd_(createEventfd())
 ,wakeupChannel_(new CChannel(this,wakeupFd_))
 {
@@ -54,7 +54,7 @@ CEventLoop::CEventLoop()
 
         // 设置wakeupfd的事件类型以及发生事件后的回调操作
     wakeupChannel_->setReadCallback(std::bind(&CEventLoop::handleRead, this));
-    // 每一个eventloop都将监听wakeupchannel的EPOLLIN读事件了
+    // 每一个eventloop都将监听wakeup channel的EPOLLIN读事件了
     wakeupChannel_->enableReading();
 }
 
@@ -140,7 +140,7 @@ void CEventLoop::queueInLoop(Functor cb)
     }
 
     // 唤醒相应的，需要执行上面回调操作的loop的线程了
-    // || callingPendingFunctors_的意思是：当前loop正在执行回调，但是loop又有了新的回调
+    // || callingPendingFunctors_的意思是：当前loop正在执行回调，但是loop又有了新的回调,没有阻塞在loop上
     if (!isInLoopThread() || callingPendingFunctors_) 
     {
         wakeup(); // 唤醒loop所在线程
@@ -162,13 +162,28 @@ void CEventLoop::handleRead()
 void CEventLoop::wakeup()
 {
     uint64_t one = 1;
-    ssize_t n = write(wakeupFd_, &one, sizeof one);
-    if (n != sizeof one)
+    ssize_t n = write(wakeupFd_, &one, sizeof(uint64_t));
+    if (n != sizeof(uint64_t))
     {
         LOG_ERROR("EventLoop::wakeup() writes %lu bytes instead of 8 \n", n);
     }
 }
 
+// EventLoop的方法 =》 Poller的方法
+void CEventLoop::updateChannel(CChannel *channel)
+{
+    poller_->updateChannel(channel);
+}
+
+void CEventLoop::removeChannel(CChannel *channel)
+{
+    poller_->removeChannel(channel);
+}
+
+bool CEventLoop::hasChannel(CChannel *channel)
+{
+    return poller_->hasChannel(channel);
+}
 
 void CEventLoop::doPendingFunctors() // 执行回调
 {
@@ -176,7 +191,7 @@ void CEventLoop::doPendingFunctors() // 执行回调
     callingPendingFunctors_ = true;
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        functors.swap(pendingFunctors_);
+        functors.swap(pendingFunctors_);//亮点
     }
 
     for (const Functor &functor : functors)

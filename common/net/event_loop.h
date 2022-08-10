@@ -41,9 +41,9 @@ public:
     void wakeup();
 
     // EventLoop的方法 =》 Poller的方法
-    void updateChannel(Channel *channel);
-    void removeChannel(Channel *channel);
-    bool hasChannel(Channel *channel);
+    void updateChannel(CChannel *channel);
+    void removeChannel(CChannel *channel);
+    bool hasChannel(CChannel *channel);
 
 
 
@@ -56,18 +56,18 @@ private:
     void handleRead(); // wake up
     void doPendingFunctors(); // 执行回调
 
-    using ChannelList = std::vector<Channel*>;
+    using ChannelList = std::vector<CChannel*>;
 
     std::atomic_bool looping_;  // 原子操作，通过CAS实现的
     std::atomic_bool quit_; // 标识退出loop循环
     
     const pid_t threadId_; // 记录当前loop所在线程的id
 
-    Timestamp pollReturnTime_; // poller返回发生事件的channels的时间点
-    std::unique_ptr<Poller> poller_;
+    CTimeStamp pollReturnTime_; // poller返回发生事件的channels的时间点
+    std::unique_ptr<CPoller> poller_;
 
     int wakeupFd_; // 主要作用，当mainLoop获取一个新用户的channel，通过轮询算法选择一个subloop，通过该成员唤醒subloop处理channel
-    std::unique_ptr<Channel> wakeupChannel_;//封装wakeupFd_,唤醒工作线程上的fd
+    std::unique_ptr<CChannel> wakeupChannel_;//封装wakeupFd_,唤醒工作线程上的fd
 
     ChannelList activeChannels_;
 
