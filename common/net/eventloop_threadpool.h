@@ -32,5 +32,5 @@ private:
     int numThreads_;
     int next_;
     std::vector<std::unique_ptr<CEventLoopThread>> threads_;//subloop one loop per thread
-    std::vector<CEventLoop*> loops_;//所有事件的指针
+    std::vector<CEventLoop*> loops_;//所有eventloop指针
 };

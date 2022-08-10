@@ -43,7 +43,7 @@ void CEventLoopThreadPool::start(const ThreadInitCallback &cb)
 
 CEventLoop * CEventLoopThreadPool::getNextLoop()
 {
-    CEventLoop *loop = baseLoop_;
+    CEventLoop *loop = baseLoop_;//IO线程 baseloop  
     if (!loops_.empty())
     {
         loop = loops_[next_];
