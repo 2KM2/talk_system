@@ -7,6 +7,11 @@
 /**
  * 从fd上读取数据  Poller工作在LT模式
  * Buffer缓冲区是有大小的！ 但是从fd上读数据的时候，却不知道tcp数据最终的大小
+ * struct iovec
+  {
+    void *iov_base;	
+    size_t iov_len;	
+  };
  */ 
 ssize_t Buffer::readFd(int fd, int* saveErrno)
 {
@@ -18,10 +23,11 @@ ssize_t Buffer::readFd(int fd, int* saveErrno)
     vec[0].iov_base = begin() + writerIndex_;
     vec[0].iov_len = writable;
 
+    //第二块缓冲区
     vec[1].iov_base = extrabuf;
-    vec[1].iov_len = sizeof extrabuf;
+    vec[1].iov_len = sizeof(extrabuf);
     
-    const int iovcnt = (writable < sizeof extrabuf) ? 2 : 1;
+    const int iovcnt = (writable < sizeof extrabuf) ? 2 : 1;//空间选择
     const ssize_t n = ::readv(fd, vec, iovcnt);
     if (n < 0)
     {
