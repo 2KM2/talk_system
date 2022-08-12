@@ -1,5 +1,5 @@
 #include <iostream>
-#include "simple_log.h"
+#include "Logger.h"
 using namespace std;
 int main()
 {

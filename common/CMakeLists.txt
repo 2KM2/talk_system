@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.5)
 project(common)
-
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
-
+message(STATUS,"Begin common")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/base)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/net)
 
@@ -17,3 +15,6 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/net  SRC_NET)
 
 # 编译生成动态库
 add_library(common SHARED ${SRC_BASE} ${SRC_NET})
+
+
+message(STATUS,"End common")
