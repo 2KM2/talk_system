@@ -5,7 +5,8 @@ build(){
 	then
 		mkdir build
 	fi
-	if [ ! -d release]
+
+	if [ ! -d release ]
 	then
 		mkdir-p release/bin
 		mkdir-p	release/lib
