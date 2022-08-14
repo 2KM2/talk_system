@@ -1,9 +1,9 @@
 #include "Thread.h"
 #include "CurrentThread.h"
-
+#include <iostream>
 #include <semaphore.h>
 
-std::atomic_int Thread::numCreated_(0);
+std::atomic_int Thread::numCreated_(-1);
 
 Thread::Thread(ThreadFunc func, const std::string &name)
     : started_(false)
@@ -26,19 +26,29 @@ Thread::~Thread()
 void Thread::start()  // 一个Thread对象，记录的就是一个新线程的详细信息
 {
     started_ = true;
+    std::cout <<"0000"<<std::endl;
     sem_t sem;
     sem_init(&sem, false, 0);
 
     // 开启线程
+    std::cout<<"111"<<std::endl;
     thread_ = std::shared_ptr<std::thread>(new std::thread([&](){
         // 获取线程的tid值
         tid_ = CurrentThread::tid();
         sem_post(&sem);
         // 开启一个新线程，专门执行该线程函数
-        func_(); 
+        if(func_)
+        {
+            func_(numCreated_); 
+        }
+        else
+        {
+            std::cout <<"error func_"<<std::endl;
+        }
     }));
 
     // 这里必须等待获取上面新创建的线程的tid值
+    std::cout <<"333"<<std::endl;
     sem_wait(&sem);
 }
 

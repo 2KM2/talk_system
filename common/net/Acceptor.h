@@ -5,6 +5,10 @@
 
 #include <functional>
 
+
+/**
+ * 封装listened 相关操作。socket bind listen baseloop
+*/
 class EventLoop;
 class InetAddress;
 

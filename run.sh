@@ -12,11 +12,12 @@ build(){
 		mkdir-p	release/lib
 		mkdir -p release/etc
 	fi
+	export LD_LIBRAY_PATH=${CURRENT_DIR}/release/lib;$LD_LIBRAY_PATH
 	cd build
 	cmake ..
 	make
 }
-
+# LD_LIBRAY_PATH
 
 clean(){
     echo "clean"
