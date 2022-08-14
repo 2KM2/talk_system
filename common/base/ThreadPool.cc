@@ -21,6 +21,19 @@ ThreadPool::ThreadPool()
     }
 
 
+/**
+ * 可能出现死锁的点
+ * 1.等待notEmpty_.wait
+ * 2.task->exec() 任务完成
+ * 3.刚进入shared_ptr<Task> task;
+ * 
+ * pool 先获取锁
+ * ~ThreadPool:38 先获取锁
+ * ThreadPool:111 再获取锁
+ * 
+ * notEmpty_.wait()点
+ * 
+*/
 ThreadPool::~ThreadPool()
 {
     isPoolRunning_ = false;
@@ -95,7 +108,7 @@ void ThreadPool::threadFunc(int threadid) // 线程函数返回，相应的线�
 	// 所有任务必须执行完成，线程池才可以回收所有线程资源
     for(;;)
     {
-        std::shared_ptr<Task> task;
+         Task task;
        {
 			// 先获取锁
 			std::unique_lock<std::mutex> lock(taskQueMtx_);
@@ -106,8 +119,7 @@ void ThreadPool::threadFunc(int threadid) // 线程函数返回，相应的线�
 			// cached模式下，有可能已经创建了很多的线程，但是空闲时间超过60s，应该把多余的线程
 			// 结束回收掉（超过initThreadSize_数量的线程要进行回收）
 			// 当前时间 - 上一次线程执行的时间 > 60s
-			
-			// 每一秒中返回一次   怎么区分：超时返回？还是有任务待执行返回
+
 			// 锁 + 双重判断
 			while (taskQue_.size() == 0)
 			{
@@ -115,7 +127,7 @@ void ThreadPool::threadFunc(int threadid) // 线程函数返回，相应的线�
 				if (!isPoolRunning_)
 				{
 					threads_.erase(threadid); // std::this_thread::getid()
-					std::cout << "threadid:" << std::this_thread::get_id()<<" threadid:"<<threadid << " exit! "<< std::endl;
+					std::cout << "tid:" << std::this_thread::get_id()<<" threadid: "<<threadid << " exit! "<< std::endl;
 					exitCond_.notify_all();
 					return; // 线程函数结束，线程结束
 				}
@@ -156,6 +168,7 @@ void ThreadPool::threadFunc(int threadid) // 线程函数返回，相应的线�
 			std::cout << "tid:" << std::this_thread::get_id()<< "获取任务成功..." << std::endl;
 
 		task = taskQue_.front();
+
 		taskQue_.pop();
 		taskSize_--;
 
@@ -173,7 +186,8 @@ void ThreadPool::threadFunc(int threadid) // 线程函数返回，相应的线�
         if (task != nullptr)    
         {      
             	// task->run(); // 执行任务；把任务的返回值setVal方法给到Result     
-        	task->exec();       
+        //	task->exec();   
+		   task();    
         }
 
 	    idleThreadSize_++;
@@ -184,7 +198,7 @@ void ThreadPool::threadFunc(int threadid) // 线程函数返回，相应的线�
 }
 
 
-
+#if 0
 std::shared_ptr<Result> ThreadPool::submitTask(std::shared_ptr<Task> sp)
 {
 	// 获取锁
@@ -236,3 +250,4 @@ std::shared_ptr<Result> ThreadPool::submitTask(std::shared_ptr<Task> sp)
 
     return std::make_shared<Result>(sp); 
 }
+#endif

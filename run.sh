@@ -8,9 +8,9 @@ build(){
 
 	if [ ! -d release ]
 	then
-		mkdir-p release/bin
-		mkdir-p	release/lib
-		mkdir -p release/etc
+		mkdir -p   release/bin
+		mkdir -p   release/lib
+		mkdir  -p  release/etc
 	fi
 	export LD_LIBRAY_PATH=${CURRENT_DIR}/release/lib;$LD_LIBRAY_PATH
 	cd build

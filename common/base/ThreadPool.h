@@ -31,6 +31,7 @@ class ThreadPool: noncopyable
 {
 
 public:
+    using Task = std::function<void()>;//中间层
     ThreadPool();
     ~ThreadPool();
 
@@ -44,7 +45,64 @@ public:
 
 
     // 给线程池提交任务
-    std::shared_ptr<Result> submitTask(std::shared_ptr<Task> sp);
+    //std::shared_ptr<Result> submitTask(std::shared_ptr<Task> sp);
+    //返回值 future
+    //std::future<decltype(func(args...))> -->返回值
+    template<typename Func,typename...Args>
+    auto submitTask(Func && func,Args&& ... args) -> std::future<decltype(func(args...))>
+    {
+        //打包任务
+        using RType = decltype(func(args...));
+        auto task  = std::make_shared<std::packaged_task<RType()>>(std::bind(std::forward<Func>(func),std::forward<Args>(args)...));
+        std::future<RType> result = task->get_future();
+        //获取锁
+        std::unique_lock<std::mutex> lock(taskQueMtx_);
+		// 用户提交任务，最长不能阻塞超过1s，否则判断提交任务失败，返回
+		if (!notFull_.wait_for(lock, std::chrono::seconds(1),
+			[&]()->bool { return taskQue_.size() < (size_t)taskQueMaxThreshHold_; }))
+		{
+			// 表示notFull_等待1s种，条件依然没有满足
+			std::cerr << "task queue is full, submit task fail." << std::endl;
+			auto task = std::make_shared<std::packaged_task<RType()>>(
+				[]()->RType { return RType(); });
+			(*task)();
+			return task->get_future();
+		}
+
+        // 如果有空余，把任务放入任务队列中
+		// taskQue_.emplace(sp);  
+		// using Task = std::function<void()>;
+        //套一层
+		taskQue_.emplace([task]() {
+            //执行这个任务
+            (*task)();
+            });
+		taskSize_++;
+        
+		// 因为新放了任务，任务队列肯定不空了，在notEmpty_上进行通知，赶快分配线程执行任务
+		notEmpty_.notify_all();
+
+		// cached模式 任务处理比较紧急 场景：小而快的任务 需要根据任务数量和空闲线程的数量，判断是否需要创建新的线程出来
+		if (poolMode_ == PoolMode::MODE_CACHED
+			&& taskSize_ > idleThreadSize_
+			&& curThreadSize_ < threadSizeThreshHold_)
+		{
+			std::cout << ">>> create new thread..." << std::endl;
+
+			// 创建新的线程对象
+			auto ptr = std::make_shared<Thread>(std::bind(&ThreadPool::threadFunc, this, std::placeholders::_1));
+			int threadId = ptr->numCreated();
+			threads_.emplace(threadId, std::move(ptr));
+			// 启动线程
+			threads_[threadId]->start();
+			// 修改线程个数相关的变量
+			curThreadSize_++;
+			idleThreadSize_++;
+		}
+
+		// 返回任务的Result对象
+		return result;
+    }
 private:
     void threadFunc(int threadid);
     	// 检查pool的运行状态
@@ -57,7 +115,7 @@ private:
 	std::atomic_int idleThreadSize_; // 记录空闲线程的数量
 
 
-    std::queue<std::shared_ptr<Task>> taskQue_;//任务队列
+    std::queue<Task> taskQue_;//任务队列
     std::atomic_int taskSize_; // 任务的数量
 	int taskQueMaxThreshHold_;  // 任务队列数量上限阈值
 

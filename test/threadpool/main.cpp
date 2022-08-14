@@ -3,9 +3,22 @@
 #include "Task.h"
 #include  "Thread.h"
 #include "ThreadPool.h"
-
+#include <chrono>
+#include <thread>
 using uLong = unsigned long long;
+using namespace std;
 
+int sum1(int a, int b)
+{
+    std::this_thread::sleep_for(chrono::seconds(2));
+    // 比较耗时
+    return a + b;
+}
+int sum2(int a, int b, int c)
+{
+    this_thread::sleep_for(chrono::seconds(2));
+    return a + b + c;
+}
 
 class MyTask : public Task
 {
@@ -34,13 +47,26 @@ private:
 };
 
 
+class DivTask
+{
+public:
+    int testFunc(int a, int b)
+    {
+        std::cout<<"DivTask"<<std::endl;
+        this_thread::sleep_for(chrono::seconds(3));
+        return a + b;
+    }
+private:
+
+};
+
 
 
 
 
 int main()
 {
-
+#if 0
     std::cout <<"TEST_ThreadPool BEGIN"<<std::endl;
 
 
@@ -68,4 +94,25 @@ int main()
 }
     std::cout <<"TEST_ThreadPool END"<<std::endl;
     return  0;
+#endif
+    {
+
+       // MyTask task;
+        ThreadPool pool;
+        pool.start();
+        /*
+        std::shared_ptr<Result> res1 = pool.submitTask(std::bind(&MyTask::));
+        uLong sum1 = res1->get().cast<uLong>();
+        std::cout << sum1<<std::endl;*/
+        future<int> r1 = pool.submitTask(sum1,1,3);
+        std::cout<<"get:"<<r1.get()<< std::endl;
+        DivTask div;
+        //std::packaged_task<int(int,int)> task=std::bind(&DivTask::run,div,_1,_2);
+        auto func1 = std::bind(&DivTask::testFunc,div, std::placeholders::_1, std::placeholders::_2);
+
+        future<int> r2 =pool.submitTask(func1,1,2);
+
+    }
+
+
 }
