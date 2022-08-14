@@ -21,17 +21,16 @@ Thread::~Thread()
     {
         thread_->detach(); // thread类提供的设置分离线程的方法
     }
+    std::cout <<"Thread::~Thread()"<<std::endl;
 }
 
 void Thread::start()  // 一个Thread对象，记录的就是一个新线程的详细信息
 {
     started_ = true;
-    std::cout <<"0000"<<std::endl;
     sem_t sem;
     sem_init(&sem, false, 0);
 
     // 开启线程
-    std::cout<<"111"<<std::endl;
     thread_ = std::shared_ptr<std::thread>(new std::thread([&](){
         // 获取线程的tid值
         tid_ = CurrentThread::tid();
@@ -39,7 +38,7 @@ void Thread::start()  // 一个Thread对象，记录的就是一个新线程的�
         // 开启一个新线程，专门执行该线程函数
         if(func_)
         {
-            func_(numCreated_); 
+            func_(threadId_); 
         }
         else
         {
@@ -48,7 +47,6 @@ void Thread::start()  // 一个Thread对象，记录的就是一个新线程的�
     }));
 
     // 这里必须等待获取上面新创建的线程的tid值
-    std::cout <<"333"<<std::endl;
     sem_wait(&sem);
 }
 
@@ -61,6 +59,7 @@ void Thread::join()
 void Thread::setDefaultName()
 {
     int num = ++numCreated_;
+    threadId_=num;
     if (name_.empty())
     {
         char buf[32] = {0};

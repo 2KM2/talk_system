@@ -24,7 +24,7 @@ public:
     pid_t tid() const { return tid_; }
     const std::string& name() const { return name_; }
 
-    static int numCreated() { return numCreated_; }
+    static int numCreated()  { return numCreated_; }
 private:
     void setDefaultName();
 
@@ -35,4 +35,5 @@ private:
     ThreadFunc func_;
     std::string name_;
     static std::atomic_int numCreated_;
+    std::atomic_int  threadId_;
 };

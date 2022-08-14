@@ -41,13 +41,14 @@ public:
 	void setTaskQueMaxThreshHold(int threshhold);
 	// 设置线程池cached模式下线程阈值
 	void setThreadSizeThreshHold(int threshhold);
-	// 检查pool的运行状态
-	bool checkRunningState() const;
+
 
     // 给线程池提交任务
-    Result submitTask(std::shared_ptr<Task> sp);
+    std::shared_ptr<Result> submitTask(std::shared_ptr<Task> sp);
 private:
     void threadFunc(int threadid);
+    	// 检查pool的运行状态
+	bool checkRunningState() const;
 private:
     std::unordered_map<int,std::shared_ptr<Thread>> threads_;//线程列表
     int  initThreadSize_;//初始的线程数量
