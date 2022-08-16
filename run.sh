@@ -12,7 +12,7 @@ build(){
 		mkdir -p   release/lib
 		mkdir  -p  release/etc
 	fi
-	export LD_LIBRAY_PATH=${CURRENT_DIR}/release/lib;$LD_LIBRAY_PATH
+	export LD_LIBRAY_PATH=${CURRENT_DIR}/release/lib
 	cd build
 	cmake ..
 	make
