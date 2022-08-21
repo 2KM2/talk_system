@@ -21,7 +21,7 @@
         Logger &logger = Logger::instance(); \
         logger.setLogLevel(ERROR); \
         char buf[1024] = {0}; \
-        snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__); \
+        snprintf(buf, 1024,logmsgFormat, ##__VA_ARGS__); \
         logger.log(buf); \
     } while(0) 
 

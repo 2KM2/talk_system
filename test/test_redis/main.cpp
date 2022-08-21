@@ -9,7 +9,7 @@ int main()
 {
 
     cout << "Test_Redis" << endl;
-    redisContext *context=redisConnect("192.168.1.72",6379);
+    redisContext *context=redisConnect("192.168.56.101",6379);
 
     if(context==nullptr)
     {

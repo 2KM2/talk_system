@@ -35,5 +35,5 @@ add_subdirectory(common)
 
 
 # example
-
+add_subdirectory(db_proxy_server)
 add_subdirectory(test)
